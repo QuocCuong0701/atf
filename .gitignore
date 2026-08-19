@@ -1,0 +1,5 @@
+node_modules/
+session/
+temp_website.js
+temp_miner_index.html
+.env

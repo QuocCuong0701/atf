@@ -1,0 +1,17 @@
+{
+  "name": "atf-auto-bot",
+  "version": "1.0.0",
+  "description": "Auto-play ATF airdrop Telegram bot via MTProto + game API",
+  "main": "bot.js",
+  "scripts": {
+    "login": "node scripts/login.js",
+    "webview": "node scripts/get-webview.js",
+    "probe-tasks": "node scripts/probe-tasks.js",
+    "start": "node bot.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "telegram": "^2.26.22"
+  }
+}
