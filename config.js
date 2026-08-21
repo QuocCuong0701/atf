@@ -29,8 +29,11 @@ const config = {
   BOOST_MAX_WAIT_MS: 10 * 60 * 1000, // cooldown dài hơn mức này thì dừng phiên, thử lại vòng sau
   BOOST_STALE_LIMIT: 5, // dừng phiên nếu chừng này boost liên tiếp không tăng pending_reward
   BOOST_PENALTY_PAUSE_MS: 45 * 60 * 1000, // nghỉ khi bị server đánh dấu penalty
-  BOOST_BUSY_RETRY_LIMIT: 3, // số lần tối đa gặp "Boost is busy right now" trong 1 phiên trước khi dừng (mỗi lần chờ hết boost hiện tại rồi thử lại)
-  BOOST_SAFETY_BUFFER_MS: 12000, // buffer an toàn thêm khi chờ server hết cooldown (cộng thêm vào jitter để tránh server vẫn busy)
+  BOOST_BUSY_RETRY_LIMIT: 5, // số lần tối đa gặp "Boost is busy right now" trong 1 phiên trước khi dừng (mỗi lần chờ hết boost hiện tại rồi thử lại)
+  BOOST_SAFETY_BUFFER_MS: 12000, // buffer an toàn ban đầu khi chờ server hết cooldown
+  BOOST_BUFFER_GROW_MS: 5000, // tăng buffer mỗi lần gặp busy (adaptive)
+  BOOST_BUFFER_SHRINK_MS: 1000, // giảm buffer mỗi boost thành công (trả về baseline)
+  BOOST_BUFFER_MAX_MS: 30000, // giới hạn trên buffer
   NETWORK_RETRIES: 3, // số lần thử lại khi lỗi mạng thoáng qua (fetch failed), backoff tăng dần 1.5s→7s
 
   // --- Human-like behavior ---
