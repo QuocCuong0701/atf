@@ -12,7 +12,7 @@ const config = {
   // --- Auto-play settings (milliseconds / seconds) ---
   LOOP_MIN_MS: 2 * 60 * 1000, // chờ tối thiểu giữa các lần kiểm tra (2 phút)
   LOOP_MAX_MS: 8 * 60 * 1000, // chờ tối đa giữa các lần kiểm tra (8 phút) — khoảng ngẫu nhiên rộng + 15% bỏ lỡ vòng = nhịp không đều giống người hay mở app
-  MIN_CLAIM_SECONDS: 6 * 60 * 60, // ngưỡng claim (sẽ được random ±35%)
+  MIN_CLAIM_SECONDS: 4 * 60 * 60, // ngưỡng claim (sẽ được random ±35%)
   AUTO_TASKS: true, // auto 4 task lặp (youtube/x/website/react, +3 ATF mỗi 2h/task)
   AUTO_REFRESH_INITDATA: true, // tự mở lại webview khi initData hết hạn
   // Server mới từ chối initData cũ bằng HTTP 401 reason=hash_mismatch (kiểm tra độ tươi của auth_date).
@@ -30,6 +30,7 @@ const config = {
   BOOST_STALE_LIMIT: 5, // dừng phiên nếu chừng này boost liên tiếp không tăng pending_reward
   BOOST_PENALTY_PAUSE_MS: 45 * 60 * 1000, // nghỉ khi bị server đánh dấu penalty
   BOOST_BUSY_RETRY_LIMIT: 3, // số lần tối đa gặp "Boost is busy right now" trong 1 phiên trước khi dừng (mỗi lần chờ hết boost hiện tại rồi thử lại)
+  BOOST_SAFETY_BUFFER_MS: 12000, // buffer an toàn thêm khi chờ server hết cooldown (cộng thêm vào jitter để tránh server vẫn busy)
   NETWORK_RETRIES: 3, // số lần thử lại khi lỗi mạng thoáng qua (fetch failed), backoff tăng dần 1.5s→7s
 
   // --- Human-like behavior ---

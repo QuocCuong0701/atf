@@ -136,9 +136,9 @@ async function autoBoost(user, difficulty, deadlineSec = 0) {
       const resumeAt = Math.max(activeUntil, readyUntil);
       let waitMs = 0;
       if (resumeAt > nowSecBusy) {
-        waitMs = (resumeAt - nowSecBusy) * 1000 + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
+        waitMs = (resumeAt - nowSecBusy) * 1000 + config.BOOST_SAFETY_BUFFER_MS + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
       } else {
-        waitMs = boostCycleSec * 1000 + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
+        waitMs = boostCycleSec * 1000 + config.BOOST_SAFETY_BUFFER_MS + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
       }
       if (waitMs > config.BOOST_MAX_WAIT_MS) {
         console.log('[i] Boost: cooldown quá dài — dừng phiên, chờ lần sau.');
@@ -188,7 +188,7 @@ async function autoBoost(user, difficulty, deadlineSec = 0) {
     // Chờ hết cooldown server (boost cycle) + jitter ngắn — bấm sớm nhất khi server cho phép
     const nextReady = parseInt(user.boost_ready_at || 0, 10) || 0;
     let waitMs = 0;
-    if (nextReady > 0) waitMs = (nextReady - Date.now() / 1000) * 1000 + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
+    if (nextReady > 0) waitMs = (nextReady - Date.now() / 1000) * 1000 + config.BOOST_SAFETY_BUFFER_MS + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
     if (waitMs > 0) {
       if (waitMs > config.BOOST_MAX_WAIT_MS) {
         // cooldown quá dài — dừng phiên, chờ lần sau
