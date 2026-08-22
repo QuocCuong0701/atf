@@ -102,7 +102,6 @@ async function autoBoost(user, difficulty, deadlineSec = 0) {
   let busyRetries = 0;
   let lastPending = parseFloat(user.pending_reward || 0) || 0;
   let staleCount = 0;
-  let adaptiveBufferMs = config.BOOST_SAFETY_BUFFER_MS;
   console.log(`[~] Boost session (tối đa ${maxBoosts} lần)...`);
   while (boosts < maxBoosts) {
     // Đến gần giờ làm task kế tiếp thì dừng boost để không lỡ task
@@ -127,8 +126,8 @@ async function autoBoost(user, difficulty, deadlineSec = 0) {
         console.log(`[-] Boost: server liên tục báo "busy" (${busyRetries}/${config.BOOST_BUSY_RETRY_LIMIT}) — dừng phiên.`);
         break;
       }
-      // Tăng buffer mỗi lần busy (adaptive backoff)
-      adaptiveBufferMs = Math.min(config.BOOST_BUFFER_MAX_MS, adaptiveBufferMs + config.BOOST_BUFFER_GROW_MS);
+      // Boost đang chạy dở — chờ hết boost hiện tại rồi thử lại, không tính là 1 lần thành công.
+      // Ưu tiên timestamps trong response busy (nếu server gửi), fallback về state cũ của user.
       const busyData = (res && res.data) || {};
       const nowSecBusy = Math.floor(Date.now() / 1000);
       const activeUntil =
@@ -137,16 +136,16 @@ async function autoBoost(user, difficulty, deadlineSec = 0) {
       const resumeAt = Math.max(activeUntil, readyUntil);
       let waitMs = 0;
       if (resumeAt > nowSecBusy) {
-        waitMs = (resumeAt - nowSecBusy) * 1000 + adaptiveBufferMs + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
+        waitMs = (resumeAt - nowSecBusy) * 1000 + config.BOOST_SAFETY_BUFFER_MS + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
       } else {
-        waitMs = boostCycleSec * 1000 + adaptiveBufferMs + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
+        waitMs = boostCycleSec * 1000 + config.BOOST_SAFETY_BUFFER_MS + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
       }
       if (waitMs > config.BOOST_MAX_WAIT_MS) {
         console.log('[i] Boost: cooldown quá dài — dừng phiên, chờ lần sau.');
         break;
       }
       console.log(
-        `[~] Boost đang bận (busy) — chờ ~${Math.round(waitMs / 1000)}s (buffer: ${Math.round(adaptiveBufferMs / 1000)}s) rồi thử lại (${busyRetries}/${config.BOOST_BUSY_RETRY_LIMIT})`
+        `[~] Boost đang bận (busy) — chờ ~${Math.round(waitMs / 1000)}s rồi thử lại (${busyRetries}/${config.BOOST_BUSY_RETRY_LIMIT})`
       );
       await sleep(waitMs);
       continue;
@@ -164,8 +163,6 @@ async function autoBoost(user, difficulty, deadlineSec = 0) {
     }
     boosts++;
     busyRetries = 0;
-    // Giảm buffer dần khi boost thành công (trả về baseline)
-    adaptiveBufferMs = Math.max(config.BOOST_SAFETY_BUFFER_MS, adaptiveBufferMs - config.BOOST_BUFFER_SHRINK_MS);
 
     const newPending = parseFloat(user.pending_reward || 0) || 0;
     if (newPending > lastPending + 0.0001) {
@@ -188,10 +185,10 @@ async function autoBoost(user, difficulty, deadlineSec = 0) {
       break;
     }
 
-    // Chờ hết cooldown server (boost cycle) + jitter — dùng adaptive buffer
+    // Chờ hết cooldown server (boost cycle) + jitter ngắn — bấm sớm nhất khi server cho phép
     const nextReady = parseInt(user.boost_ready_at || 0, 10) || 0;
     let waitMs = 0;
-    if (nextReady > 0) waitMs = (nextReady - Date.now() / 1000) * 1000 + adaptiveBufferMs + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
+    if (nextReady > 0) waitMs = (nextReady - Date.now() / 1000) * 1000 + config.BOOST_SAFETY_BUFFER_MS + rand(config.BOOST_JITTER_MIN_MS, config.BOOST_JITTER_MAX_MS);
     if (waitMs > 0) {
       if (waitMs > config.BOOST_MAX_WAIT_MS) {
         // cooldown quá dài — dừng phiên, chờ lần sau
